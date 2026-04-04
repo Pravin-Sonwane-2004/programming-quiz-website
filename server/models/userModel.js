@@ -1,28 +1,52 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
+const { getDb } = require("../database/connection");
 
-// Define the User schema
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-}, { timestamps: true });
-
-// Hash password before saving the user
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  try {
-    this.password = await bcrypt.hash(this.password, 10);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Compare passwords for login
-userSchema.methods.comparePassword = async function (password) {
-  return bcrypt.compare(password, this.password);
+const createUser = async (username, email, password) => {
+  const pool = getDb();
+  const [result] = await pool.execute(
+    "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+    [username, email, password]
+  );
+  return result;
 };
 
-// Export the User model
-module.exports = mongoose.model("User", userSchema);
+const findByEmail = async (email) => {
+  const pool = getDb();
+  const [rows] = await pool.execute(
+    "SELECT * FROM users WHERE email = ?",
+    [email]
+  );
+  return rows[0] || null;
+};
+
+const findByResetToken = async (token) => {
+  const pool = getDb();
+  const [rows] = await pool.execute(
+    "SELECT * FROM users WHERE reset_token = ? AND reset_token_expiration > ?",
+    [token, Date.now()]
+  );
+  return rows[0] || null;
+};
+
+const updatePassword = async (userId, hashedPassword) => {
+  const pool = getDb();
+  await pool.execute(
+    "UPDATE users SET password = ?, reset_token = NULL, reset_token_expiration = NULL WHERE id = ?",
+    [hashedPassword, userId]
+  );
+};
+
+const setResetToken = async (userId, token, expiration) => {
+  const pool = getDb();
+  await pool.execute(
+    "UPDATE users SET reset_token = ?, reset_token_expiration = ? WHERE id = ?",
+    [token, expiration, userId]
+  );
+};
+
+module.exports = {
+  createUser,
+  findByEmail,
+  findByResetToken,
+  updatePassword,
+  setResetToken,
+};

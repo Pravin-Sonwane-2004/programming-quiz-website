@@ -1,9 +1,12 @@
-const mongoose = require("mongoose");
+const fs = require("fs/promises");
+const path = require("path");
 
-const questionSchema = new mongoose.Schema({
-    question: { type: String, required: true },
-    options: { type: [String], required: true },
-    correctAnswer: { type: String, required: true },
-}, { timestamps: true });
+const getAllQuestions = async () => {
+  const questionsPath = path.join(__dirname, "..", "client", "public", "questions.json");
+  const data = await fs.readFile(questionsPath, "utf8");
+  return JSON.parse(data);
+};
 
-module.exports = mongoose.model("Question", questionSchema);
+module.exports = {
+  getAllQuestions,
+};

@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Pravin2004P/hosting.git"
+    "url": "git+https://github.com/Vishal2004P/hosting.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Pravin2004P/hosting/issues"
+    "url": "https://github.com/Vishal2004P/hosting/issues"
   },
-  "homepage": "https://github.com/Pravin2004P/hosting#readme",
+  "homepage": "https://github.com/Vishal2004P/hosting#readme",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
@@ -25,9 +25,9 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
+    "jsonwebtoken": "^9.0.0",
     "mime-types": "^2.1.35",
-    "mongodb": "^6.12.0",
-    "mongoose": "^8.9.3",
+    "mysql2": "^3.6.0",
     "punycode": "^2.3.1"
   },
   "devDependencies": {

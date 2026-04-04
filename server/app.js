@@ -3,10 +3,10 @@ require('dotenv').config({ path: './config/.env' });
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const url = require("url");
+const { URL } = require("url");
 const querystring = require("querystring");
 const bcrypt = require("bcrypt");
-const mime = require("mime-types"); // To handle MIME types dynamically
+const mime = require("mime-types");
 const { connectToDatabase, getDb } = require("./database/connection");
 
 const PORT = process.env.PORT || 3000;
@@ -17,8 +17,8 @@ const PORT = process.env.PORT || 3000;
  * @param {string} filePath - Path to the file.
  */
 const serveStaticFile = (res, filePath) => {
-  const fullPath = path.join(__dirname, "..", "client", "public", filePath); // Adjusted path to `client/public`
-  
+  const fullPath = path.join(__dirname, "..", "client", "public", filePath);
+
   fs.readFile(fullPath, (err, data) => {
     if (err) {
       console.error(`❌ Error serving ${filePath}:`, err.message);
@@ -45,22 +45,23 @@ const handleRegistration = async (req, res) => {
     const postData = querystring.parse(body);
 
     try {
-      const db = getDb();
-      const users = db.collection("users");
+      const pool = getDb();
+      const [existingUsers] = await pool.execute(
+        "SELECT id FROM users WHERE email = ?",
+        [postData.email]
+      );
 
-      const existingUser = await users.findOne({ email: postData.email });
-      if (existingUser) {
+      if (existingUsers.length > 0) {
         res.writeHead(400, { "Content-Type": "text/plain" });
         return res.end("❌ User already exists.");
       }
 
       const hashedPassword = await bcrypt.hash(postData.password, 12);
 
-      await users.insertOne({
-        username: postData.username,
-        email: postData.email,
-        password: hashedPassword,
-      });
+      await pool.execute(
+        "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+        [postData.username, postData.email, hashedPassword]
+      );
 
       res.writeHead(200, { "Content-Type": "text/plain" });
       res.end("✅ Registration successful.");
@@ -83,10 +84,13 @@ const handleLogin = async (req, res) => {
     const postData = querystring.parse(body);
 
     try {
-      const db = getDb();
-      const users = db.collection("users");
+      const pool = getDb();
+      const [rows] = await pool.execute(
+        "SELECT id, password FROM users WHERE email = ?",
+        [postData.email]
+      );
 
-      const user = await users.findOne({ email: postData.email });
+      const user = rows[0];
       if (!user || !(await bcrypt.compare(postData.password, user.password))) {
         res.writeHead(400, { "Content-Type": "text/plain" });
         return res.end("❌ Invalid email or password.");
@@ -106,25 +110,23 @@ const handleLogin = async (req, res) => {
  * Main server logic.
  */
 const server = http.createServer(async (req, res) => {
-  const parsedUrl = url.parse(req.url);
+  const base = `http://${req.headers.host || `localhost:${PORT}`}`;
+  const parsedUrl = new URL(req.url, base);
   const pathname = parsedUrl.pathname;
 
-  // Paths for HTML pages
   const htmlPaths = {
     "/": "login.html",
     "/login.html": "login.html",
     "/register.html": "register.html",
     "/index.html": "index.html",
-    "/quiz.html": "quiz.html", // Adjusted path for quiz.html
+    "/quiz.html": "quiz.html",
   };
 
   if (req.method === "GET") {
-    // Serve HTML pages
     if (htmlPaths[pathname]) {
       return serveStaticFile(res, htmlPaths[pathname]);
     }
 
-    // Serve other static files dynamically
     const extension = path.extname(pathname);
     if ([".css", ".js", ".json"].includes(extension)) {
       return serveStaticFile(res, pathname);
@@ -138,20 +140,18 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // If no route matches
   res.writeHead(404, { "Content-Type": "text/plain" });
   res.end("❌ Not Found");
 });
 
-// Start the server and connect to the database
 (async () => {
   try {
     await connectToDatabase();
-    console.log("✅ MongoDB connected successfully!");
+    console.log("✅ Server ready with MySQL!");
     server.listen(PORT, () => {
       console.log(`✅ Server running at http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error("❌ Failed to connect to MongoDB:", error.message);
+    console.error("❌ Failed to connect to MySQL:", error.message);
   }
 })();

@@ -1,58 +1,76 @@
-const { MongoClient } = require("mongodb");
+const mysql = require("mysql2/promise");
 const dotenv = require("dotenv");
 
-dotenv.config(); // Load environment variables from .env file
+dotenv.config();
 
-const uri = process.env.MONGO_URI;
-const dbName = process.env.DB_NAME || "defaultDB";
+const host = process.env.MYSQL_HOST || "localhost";
+const port = parseInt(process.env.MYSQL_PORT || "3306", 10);
+const user = process.env.MYSQL_USER || "root";
+const password = process.env.MYSQL_PASSWORD || "";
+const database = process.env.MYSQL_DATABASE || "quizDB";
 
-if (!uri) {
-  console.error("❌ Error: MONGO_URI is not defined in the .env file. Please add it and try again.");
+if (!user || !database) {
+  console.error("❌ Error: MYSQL_USER and MYSQL_DATABASE must be defined in the .env file.");
   process.exit(1);
 }
 
-const client = new MongoClient(uri, {
-  tls: true, // Enable TLS
-  minDHSize: 2048, // Enforce a minimum Diffie-Hellman key size for security
+const pool = mysql.createPool({
+  host,
+  port,
+  user,
+  password,
+  database,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  charset: "utf8mb4",
 });
-
-let db;
 
 const connectToDatabase = async () => {
   try {
-    await client.connect();
-    db = client.db(dbName);
-    console.log("✅ MongoDB connected successfully!");
+    const connection = await pool.getConnection();
+    await connection.ping();
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(100) NOT NULL,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        reset_token VARCHAR(255),
+        reset_token_expiration BIGINT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    connection.release();
+    console.log("✅ MySQL connected successfully!");
   } catch (err) {
-    console.error("❌ MongoDB connection failed:", err.message);
+    console.error("❌ MySQL connection failed:", err.message);
     process.exit(1);
   }
 };
 
 const getDb = () => {
-  if (!db) {
-    throw new Error("❌ Database not initialized. Call connectToDatabase before using the database.");
+  if (!pool) {
+    throw new Error("❌ Database pool is not available. Call connectToDatabase first.");
   }
-  return db;
+  return pool;
 };
 
 const gracefulShutdown = async () => {
   try {
-    if (client) {
-      await client.close();
-      console.log("✅ MongoDB connection closed.");
-    }
+    await pool.end();
+    console.log("✅ MySQL connection pool closed.");
     process.exit(0);
   } catch (err) {
-    console.error("❌ Error during MongoDB connection shutdown:", err.message);
+    console.error("❌ Error during MySQL shutdown:", err.message);
     process.exit(1);
   }
 };
 
 process.on("SIGINT", gracefulShutdown);
 process.on("SIGTERM", gracefulShutdown);
-
-connectToDatabase();
 
 module.exports = {
   connectToDatabase,

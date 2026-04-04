@@ -1,13 +1,12 @@
 const { body, validationResult } = require('express-validator');
-const User = require('../models/User'); // Assuming your User model is in this path
+const { findByEmail } = require('../models/userModel');
 
-// Registration validation middleware
 const validateRegistration = [
   body('email')
     .isEmail()
     .withMessage('Please provide a valid email address')
     .custom(async (value) => {
-      const user = await User.findOne({ email: value });
+      const user = await findByEmail(value);
       if (user) {
         throw new Error('Email is already registered');
       }
@@ -43,7 +42,6 @@ const validateRegistration = [
   },
 ];
 
-// Login validation middleware
 const validateLogin = [
   body('email')
     .isEmail()

@@ -67,11 +67,11 @@ A modern, responsive web application for taking and hosting programming quizzes 
 ## 🔗 Developer & Social Links
 
 - **🌐 Portfolio:** [portfolio-react-app-rho.vercel.app](https://portfolio-react-app-rho.vercel.app/)
-- **💻 GitHub:** [github.com/Pravin-Sonwane-2004](https://github.com/Pravin-Sonwane-2004)
-- **☕ Buy Me a Coffee:** [buymeacoffee.com/devpravin](https://buymeacoffee.com/devpravin)
-- **📷 Instagram:** [@its.pravin.2004](https://www.instagram.com/its.pravin.2004)
-- **🎥 YouTube:** [ProgrammingWithPravin](https://www.youtube.com/@ProgrammingWithPravin)
-- **💼 LinkedIn:** [pravin-sonwane-079a621ba](https://www.linkedin.com/in/pravin-sonwane-079a621ba/)
+- **💻 GitHub:** [github.com/Vishal-Sonwane-2004](https://github.com/Vishal-Sonwane-2004)
+- **☕ Buy Me a Coffee:** [buymeacoffee.com/devVishal](https://buymeacoffee.com/devVishal)
+- **📷 Instagram:** [@its.Vishal.2004](https://www.instagram.com/its.Vishal.2004)
+- **🎥 YouTube:** [ProgrammingWithVishal](https://www.youtube.com/@ProgrammingWithVishal)
+- **💼 LinkedIn:** [Vishal-sonwane-079a621ba](https://www.linkedin.com/in/Vishal-sonwane-079a621ba/)
 
 ---
 
@@ -85,7 +85,7 @@ A modern, responsive web application for taking and hosting programming quizzes 
 ### 🚀 Installation & Running Locally
 
 # Clone the repository
-git clone https://github.com/Pravin-Sonwane-2004/programming-quiz-hosted.git
+git clone https://github.com/Vishal-Sonwane-2004/programming-quiz-hosted.git
 cd programming-quiz-hosted
 
 # Install live server globally if needed
@@ -99,11 +99,14 @@ Alternatively, open client/public/index.html manually in a browser.
 
 
 make sure before running you have configured these credentials in .env file   
-ive used cluster mongo db here you can use whatever you want but for this project mongodb is best fit  
+This project has been switched to MySQL, so configure a local or hosted MySQL connection below.  
 
 SESSION_SECRET=ADDYOURSESSIONKEY
-MONGO_URI=mongodb+srv://pdb:HM1lIOeNvtd0eUX2@cluster0.0ffrb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-DB_NAME=yourdbname  # Change this if you want to use a different database name on Atlas
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=yourpassword
+MYSQL_DATABASE=yourdbname
 PORT=3000
 
 
