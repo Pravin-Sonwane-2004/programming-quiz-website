@@ -11,7 +11,19 @@ const fs = require("fs");
 const path = require("path");
 const { URL } = require("url");
 const crypto = require("crypto");
+
+// bcrypt's @mapbox/node-pre-gyp dependency uses the deprecated url.resolve()
+// (DEP0169) while locating its native module. Nothing in this project uses
+// url.parse()/url.resolve(), so suppress only that specific warning at require time.
+const originalEmitWarning = process.emitWarning;
+process.emitWarning = function suppressDep0169(warning, typeOrOptions, code, ...rest) {
+  const warningCode =
+    typeof typeOrOptions === "string" ? code : (typeOrOptions && typeOrOptions.code);
+  if (warningCode === "DEP0169" || (warning && warning.code === "DEP0169")) return;
+  return originalEmitWarning.call(process, warning, typeOrOptions, code, ...rest);
+};
 const bcrypt = require("bcrypt");
+process.emitWarning = originalEmitWarning;
 const mime = require("mime-types");
 
 const { connectToDatabase } = require("./database/connection");
