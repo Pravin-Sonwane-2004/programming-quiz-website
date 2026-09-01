@@ -12,65 +12,58 @@
     <link rel="stylesheet" href="login.css">
     <!-- Tabler Icons CDN -->
     <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.43.0/tabler-icons.min.css" rel="stylesheet">
-    <style>
-      .ti { font-family: 'tabler-icons', sans-serif !important; font-style: normal; font-weight: normal; }
-    </style>
 </head>
 
 <body>
     <div class="container">
         <!-- Register Header -->
         <h2 class="logo">
-             Hello Coderz
+            <img src="imagee.png" alt="Logo" class="logo-image"> Hello Coderz
         </h2>
 
-        
         <!-- Register Form -->
         <div class="logreg-box">
             <div class="form-box register">
-                <form action="/register" method="POST" id="registerForm">
+                <form novalidate id="registerForm">
                     <h2>Sign Up</h2>
 
                     <!-- Error Message Display -->
-                    <div id="error-message" style="color: red; display: none;"></div>
+                    <div id="error-message" role="alert" style="color: red; display: none;"></div>
 
                     <!-- Name Input -->
                     <div class="input-box">
                         <span class="icon"><i class="bx bxs-user"></i></span>
-                        <input type="text" name="username" id="name" required placeholder="Enter your name">
+                        <input type="text" name="username" id="name" required placeholder="Enter your name" autocomplete="name">
                         <label for="name">Name</label>
                     </div>
 
                     <!-- Email Input -->
                     <div class="input-box">
                         <span class="icon"><i class="bx bxs-envelope"></i></span>
-                        <input type="email" name="email" id="email" required placeholder="Enter your email">
+                        <input type="email" name="email" id="email" required placeholder="Enter your email" autocomplete="email">
                         <label for="email">Email</label>
                     </div>
 
                     <!-- Password Input with Toggle Visibility -->
                     <div class="input-box">
-                        <span class="icon" onclick="togglePasswordVisibility()">
+                        <span class="icon" onclick="togglePasswordVisibility('password', 'lockIcon')">
                             <i class="bx bxs-lock-alt" id="lockIcon" aria-label="Toggle password visibility" role="button" tabindex="0"></i>
                         </span>
-                        <input type="password" name="password" id="password" required placeholder="Enter your password">
+                        <input type="password" name="password" id="password" required placeholder="Enter your password" autocomplete="new-password">
                         <label for="password">Password</label>
                     </div>
 
                     <!-- Confirm Password Input -->
                     <div class="input-box">
-                        <span class="icon" onclick="togglePasswordVisibility()">
-                            <i class="bx bxs-lock-alt" id="confirmLockIcon" aria-label="Toggle password visibility" role="button" tabindex="0"></i>
+                        <span class="icon" onclick="togglePasswordVisibility('confirmPassword', 'confirmLockIcon')">
+                            <i class="bx bxs-lock-alt" id="confirmLockIcon" aria-label="Toggle confirm password visibility" role="button" tabindex="0"></i>
                         </span>
-                        <input type="password" name="confirmPassword" id="confirmPassword" required placeholder="Confirm your password">
+                        <input type="password" name="confirmPassword" id="confirmPassword" required placeholder="Confirm your password" autocomplete="new-password">
                         <label for="confirmPassword">Confirm Password</label>
                     </div>
 
-                    <div class="remember-forget">
-                        <label><input type="checkbox" name="remember"> Remember me</label>
-                    </div>
-
-                    <button type="submit" class="btn">Sign Up</button>
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn" id="submit-btn">Sign Up</button>
 
                     <div class="login-register">
                         Already have an account? <a href="login.html" class="register-link">Log In</a>
@@ -78,8 +71,7 @@
                 </form>
             </div>
         </div>
-
-        <!-- Social Media Links -->
+<!-- Social Media Links -->
         <div class="social-icons">
             <a href="https://portfolio-react-app-rho.vercel.app/" target="_blank"><i class="bx bxs-user"></i></a>
             <a href="https://www.instagram.com/its.Vishal.2004" target="_blank"><i class="bx bxl-instagram"></i></a>
@@ -91,78 +83,81 @@
 
     <!-- Script for Toggle Password Visibility and Validation -->
     <script>
-        function togglePasswordVisibility() {
-            const passwordField = document.getElementById('password');
-            const lockIcon = document.getElementById('lockIcon');
-            const confirmPasswordField = document.getElementById('confirmPassword');
-            const confirmLockIcon = document.getElementById('confirmLockIcon');
-
-            if (passwordField.type === 'password') {
-                passwordField.type = 'text'; // Show password
-                lockIcon.classList.remove('bxs-lock-alt');
-                lockIcon.classList.add('bxs-lock-open-alt');
+        function togglePasswordVisibility(fieldId, iconId) {
+            const field = document.getElementById(fieldId);
+            const icon = document.getElementById(iconId);
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.classList.replace('bxs-lock-alt', 'bxs-lock-open-alt');
             } else {
-                passwordField.type = 'password'; // Hide password
-                lockIcon.classList.remove('bxs-lock-open-alt');
-                lockIcon.classList.add('bxs-lock-alt');
-            }
-
-            if (confirmPasswordField.type === 'password') {
-                confirmPasswordField.type = 'text'; // Show password
-                confirmLockIcon.classList.remove('bxs-lock-alt');
-                confirmLockIcon.classList.add('bxs-lock-open-alt');
-            } else {
-                confirmPasswordField.type = 'password'; // Hide password
-                confirmLockIcon.classList.remove('bxs-lock-open-alt');
-                confirmLockIcon.classList.add('bxs-lock-alt');
+                field.type = 'password';
+                icon.classList.replace('bxs-lock-open-alt', 'bxs-lock-alt');
             }
         }
 
-        // Client-Side Validation
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function showError(text) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = text;
+            errorMessage.style.display = 'block';
+        }
+
+        // Client side validation + submit via the JSON API
         document.getElementById('registerForm').addEventListener('submit', function (event) {
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
+            event.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-            const errorMessage = document.getElementById('error-message');
+            const submitBtn = document.getElementById('submit-btn');
 
-            // Reset error message
-            errorMessage.style.display = 'none';
-            errorMessage.textContent = '';
+            document.getElementById('error-message').style.display = 'none';
 
-            // Simple email validation
+            if (name.length < 3) {
+                showError('Name must be at least 3 characters long.');
+                return;
+            }
             if (!validateEmail(email)) {
-                errorMessage.textContent = 'Please enter a valid email address.';
-                errorMessage.style.display = 'block';
-                event.preventDefault();
+                showError('Please enter a valid email address.');
                 return;
             }
-
-            // Password length validation
-            if (password.length < 6) {
-                errorMessage.textContent = 'Password must be at least 6 characters long.';
-                errorMessage.style.display = 'block';
-                event.preventDefault();
+            if (password.length < 8 || !/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
+                showError('Password must be at least 8 characters and include a letter and a number.');
                 return;
             }
-
-            // Confirm Password validation
             if (password !== confirmPassword) {
-                errorMessage.textContent = 'Passwords do not match.';
-                errorMessage.style.display = 'block';
-                event.preventDefault();
+                showError('Passwords do not match.');
                 return;
             }
 
-            // After successful validation, redirect to login page with a success message
-            window.location.href = '/login.html?message=You%20have%20registered%20successfully!';
-        });
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating account...';
 
-        // Function to validate email format
-        function validateEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
+            fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: name, email: email, password: password })
+            })
+                .then(response => response.json().then(data => ({ ok: response.ok, data: data })))
+                .then(({ ok, data }) => {
+                    if (ok) {
+                        window.location.href = '/login.html?message=' + encodeURIComponent(data.message || 'You have registered successfully!');
+                    } else {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Sign Up';
+                        showError(data.message || 'Registration failed. Please try again.');
+                    }
+                })
+                .catch(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Sign Up';
+                    showError('Unable to reach the server. Please try again later.');
+                });
+        });
     </script>
 </body>
 

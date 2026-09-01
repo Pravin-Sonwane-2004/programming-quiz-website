@@ -137,12 +137,8 @@ body.dark-mode .quiz-button {
 }
 
 body.dark-mode .quiz-question {
-    background-color: var(--white-bg);
-    color: var(--light-text);
-}
-body.dark-mode .quiz-question {
     background-color: var(--dark-bg);
-    box-shadow: 0 0 20px rgb(255, 255, 255);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
     color: var(--light-text);
 }
 
@@ -575,7 +571,7 @@ body.dark-mode .option {
 
 body.dark-mode #dark-mode-toggle {
     border-color: var(--light-text);
-    color: var (--light-text);
+    color: var(--light-text);
 }
 
 body.dark-mode #dark-mode-toggle:hover {

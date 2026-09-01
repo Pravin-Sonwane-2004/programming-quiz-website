@@ -18,48 +18,74 @@
         <h2 class="logo">
             <img src="imagee.png" alt="Logo" class="logo-image"> Hello Coderz
         </h2>
-        <!-- Reset Password Form -->
-        <div class="form-box">
-            <form method="post" action="/forget" id="resetForm" onsubmit="return validatePasswords()">
-                <h2>Reset Password</h2>
 
-                <!-- Email Input -->
+        <!-- Step 1: Request a reset link (no token in URL yet) -->
+        <div class="form-box" id="request-step">
+            <form novalidate id="requestForm">
+                <h2>Forgot Password</h2>
+                <p style="margin-bottom: 10px;">Enter your email address and we will generate a reset link.</p>
+
                 <div class="input-box">
                     <span class="icon"><i class="bx bxs-envelope"></i></span>
-                    <input type="email" name="email" id="email" required aria-label="Email Address" placeholder="Enter your email">
+                    <input type="email" name="email" id="email" required aria-label="Email Address" placeholder="Enter your email" autocomplete="email">
                     <label for="email">Email Address</label>
                 </div>
 
-                <!-- New Password Input -->
+                <div id="request-message" role="alert" style="margin: 10px 0; font-size: 0.95em;"></div>
+
+                <button type="submit" class="btn" id="request-btn">Send Reset Link</button>
+
+                <div class="login-register">
+                    Remember your password? <a href="login.html" class="register-link">Log In</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Step 2: Enter a new password (token present in the URL) -->
+        <div class="form-box" id="reset-step" style="display: none;">
+            <form novalidate id="resetForm">
+                <h2>Reset Password</h2>
+
                 <div class="input-box">
                     <span class="icon"><i class="bx bxs-lock-alt"></i></span>
-                    <input type="password" name="newpassword" id="newpassword" required aria-label="New Password" placeholder="Enter new password" oninput="checkPasswordStrength()">
+                    <input type="password" name="newpassword" id="newpassword" required aria-label="New Password" placeholder="Enter new password" autocomplete="new-password" oninput="checkPasswordStrength()">
                     <label for="newpassword">New Password</label>
                     <div id="password-strength" style="margin-top:5px;font-size:0.95em;"></div>
                 </div>
 
-                <!-- Confirm Password Input -->
                 <div class="input-box">
                     <span class="icon"><i class="bx bxs-lock-alt"></i></span>
-                    <input type="password" name="confirmpassword" id="confirmpassword" required aria-label="Confirm Password" placeholder="Confirm your password">
+                    <input type="password" name="confirmpassword" id="confirmpassword" required aria-label="Confirm Password" placeholder="Confirm your password" autocomplete="new-password">
                     <label for="confirmpassword">Confirm Password</label>
                 </div>
 
-                <!-- Error Message -->
-                <div id="error-message" role="alert" style="color: red; display: none;">Passwords do not match!</div>
+                <div id="reset-message" role="alert" style="margin: 10px 0; font-size: 0.95em;"></div>
 
-                <!-- Submit Button -->
-                <button type="submit" class="btn">Change Password</button>
+                <button type="submit" class="btn" id="reset-btn">Change Password</button>
 
-                <!-- Back to Login -->
                 <div class="login-register">
                     Remember your password? <a href="login.html" class="register-link">Log In</a>
                 </div>
             </form>
         </div>
     </div>
+<script>
+        // Show either step depending on whether a reset token is present.
+        const token = new URLSearchParams(window.location.search).get('token');
+        const requestStep = document.getElementById('request-step');
+        const resetStep = document.getElementById('reset-step');
 
-    <script>
+        if (token) {
+            requestStep.style.display = 'none';
+            resetStep.style.display = 'block';
+        }
+
+        function showMessage(id, text, color) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            el.style.color = color || 'red';
+        }
+
         function checkPasswordStrength() {
             const pwd = document.getElementById('newpassword').value;
             const strengthDiv = document.getElementById('password-strength');
@@ -69,52 +95,107 @@
             if (/[a-z]/.test(pwd)) strength++;
             if (/[0-9]/.test(pwd)) strength++;
             if (/[^A-Za-z0-9]/.test(pwd)) strength++;
+
             let msg = '';
             let color = '';
-            if (strength <= 2) { msg = 'Weak'; color = 'red'; }
-            else if (strength === 3) { msg = 'Medium'; color = 'orange'; }
-            else if (strength >= 4) { msg = 'Strong'; color = 'green'; }
-            if (pwd.length === 0) { msg = ''; }
+            if (pwd.length === 0) {
+                msg = '';
+            } else if (strength <= 2) {
+                msg = 'Weak';
+                color = 'red';
+            } else if (strength === 3) {
+                msg = 'Medium';
+                color = 'orange';
+            } else {
+                msg = 'Strong';
+                color = 'green';
+            }
             strengthDiv.textContent = msg;
             strengthDiv.style.color = color;
         }
 
-        function validatePasswords() {
+        // Step 1: request a reset link
+        document.getElementById('requestForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const btn = document.getElementById('request-btn');
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showMessage('request-message', 'Please enter a valid email address.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            fetch('/forgot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            })
+                .then(response => response.json().then(data => ({ ok: response.ok, data: data })))
+                .then(({ ok, data }) => {
+                    btn.disabled = false;
+                    btn.textContent = 'Send Reset Link';
+                    if (!ok) {
+                        showMessage('request-message', data.message || 'Something went wrong.');
+                        return;
+                    }
+                    const messageEl = document.getElementById('request-message');
+                    messageEl.style.color = 'green';
+                    messageEl.innerHTML = data.resetLink
+                        ? 'Reset link generated. Click below to reset your password:<br><a href="' + data.resetLink + '">' + data.resetLink + '</a>'
+                        : data.message;
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Send Reset Link';
+                    showMessage('request-message', 'Unable to reach the server. Please try again later.');
+                });
+        });
+
+        // Step 2: submit the new password with the token
+        document.getElementById('resetForm').addEventListener('submit', function (event) {
+            event.preventDefault();
             const newPassword = document.getElementById('newpassword').value;
             const confirmPassword = document.getElementById('confirmpassword').value;
-            const errorMessage = document.getElementById('error-message');
+            const btn = document.getElementById('reset-btn');
 
-            // Reset error display
-            errorMessage.style.display = 'none';
-
-            // Check password length
-            if (newPassword.length < 8) {
-                errorMessage.textContent = 'Password must be at least 8 characters long.';
-                errorMessage.style.display = 'block';
-                return false;
+            if (newPassword.length < 8 || !/[a-zA-Z]/.test(newPassword) || !/\d/.test(newPassword)) {
+                showMessage('reset-message', 'Password must be at least 8 characters and include a letter and a number.');
+                return;
             }
-            // Check for uppercase, lowercase, number, special char
-            if (!/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
-                errorMessage.textContent = 'Password must include uppercase, lowercase, number, and special character.';
-                errorMessage.style.display = 'block';
-                return false;
-            }
-            // Check if passwords match
             if (newPassword !== confirmPassword) {
-                errorMessage.textContent = 'Passwords do not match!';
-                errorMessage.style.display = 'block';
-                return false;
+                showMessage('reset-message', 'Passwords do not match!');
+                return;
             }
-            return true;
-        }
+
+            btn.disabled = true;
+            btn.textContent = 'Resetting...';
+
+            fetch('/reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: token, newPassword: newPassword })
+            })
+                .then(response => response.json().then(data => ({ ok: response.ok, data: data })))
+                .then(({ ok, data }) => {
+                    btn.disabled = false;
+                    btn.textContent = 'Change Password';
+                    if (ok) {
+                        showMessage('reset-message', 'Password has been reset. Redirecting to login...', 'green');
+                        setTimeout(() => { window.location.href = '/login.html?message=' + encodeURIComponent(data.message || 'Password changed successfully!'); }, 1500);
+                    } else {
+                        showMessage('reset-message', data.message || 'Unable to reset your password.');
+                    }
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Change Password';
+                    showMessage('reset-message', 'Unable to reach the server. Please try again later.');
+                });
+        });
     </script>
-<footer class="footer">
-        <div style="text-align:center; margin-top:30px;">
-            <a href="https://buymeacoffee.com/devVishal" target="_blank" style="color:inherit; text-decoration:none; font-size:1.1em; display:inline-flex; align-items:center; gap:6px;">
-                <i class="ti ti-coffee" style="font-size:1.5em;"></i> Buy me a coffee
-            </a>
-        </div>
-    </footer>
 </body>
 
 </html>

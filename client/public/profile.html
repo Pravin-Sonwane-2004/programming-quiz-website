@@ -23,29 +23,32 @@
                 <ul>
                     <li><a href="index.html">Dashboard</a></li>
                     <li><a href="profile.html">Profile</a></li>
-                    <li><a href="login.html">Logout</a></li>
+                    <li><a href="#" id="logout-link">Logout</a></li>
                 </ul>
             </nav>
         </aside>
 
         <main class="profile-content">
             <h1>Welcome, <span id="username">User</span></h1>
+            <div id="profile-message" role="alert" style="display: none; margin-bottom: 15px;"></div>
+
             <div class="profile-details">
                 <h2>Profile Details</h2>
-                <p><strong>Email:</strong> <span id="email">user@example.com</span></p>
-                <p><strong>Joined:</strong> <span id="joinedDate">01/01/2023</span></p>
+                <p><strong>Username:</strong> <span id="displayUsername">-</span></p>
+                <p><strong>Email:</strong> <span id="email">-</span></p>
+                <p><strong>Joined:</strong> <span id="joinedDate">-</span></p>
             </div>
 
             <div class="edit-profile-section">
                 <h2>Edit Profile</h2>
-                <form id="editProfileForm" onsubmit="return updateProfile(event)">
+                <form id="editProfileForm">
                     <label for="editUsername">Username:</label>
                     <input type="text" id="editUsername" name="editUsername" required><br>
                     <label for="editEmail">Email:</label>
                     <input type="email" id="editEmail" name="editEmail" required><br>
                     <label for="editPassword">New Password:</label>
                     <input type="password" id="editPassword" name="editPassword" placeholder="Leave blank to keep current"><br>
-                    <button type="submit">Save Changes</button>
+                    <button type="submit" id="save-btn">Save Changes</button>
                     <div id="profile-update-message" style="margin-top:10px;"></div>
                 </form>
             </div>
@@ -53,106 +56,140 @@
             <div class="performance-section">
                 <h2>Performance</h2>
                 <div id="performanceData">
-                    <!-- Performance data will be loaded here -->
+                    <p>No performance data available yet. Take a quiz to see your results here.</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <button id="toggleButton">Toggle</button>
-    <button id="dark-mode-toggle">Toggle Dark Mode</button>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchUserProfile();
-
-            const darkModeToggle = document.getElementById('dark-mode-toggle');
-            
-            // Check if light mode was previously enabled
-            if (localStorage.getItem('darkMode') === 'false') {
-                document.body.classList.remove('dark-mode');
-            }
-
-            darkModeToggle.addEventListener('click', () => {
-                document.body.classList.toggle('dark-mode');
-                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-            });
-        });
+    <button id="dark-mode-toggle" type="button">Toggle Dark Mode</button>
+<script>
+        function showProfileMessage(text, color) {
+            const el = document.getElementById('profile-message');
+            el.textContent = text;
+            el.style.color = color || 'red';
+            el.style.display = 'block';
+        }
 
         function fetchUserProfile() {
             fetch('/api/user/profile')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('username').textContent = data.username;
-                    document.getElementById('email').textContent = data.email;
-                    document.getElementById('joinedDate').textContent = new Date(data.joinedDate).toLocaleDateString();
-                    loadPerformanceData(data.performance);
-                    // Pre-fill edit form
-                    document.getElementById('editUsername').value = data.username;
-                    document.getElementById('editEmail').value = data.email;
+                .then(response => response.json().then(data => ({ ok: response.ok, data: data })))
+                .then(({ ok, data }) => {
+                    if (!ok) {
+                        showProfileMessage(data.message || 'You must be logged in.', 'red');
+                        setTimeout(() => { window.location.href = '/login.html'; }, 1500);
+                        return;
+                    }
+                    const user = data.user;
+                    document.getElementById('username').textContent = user.username;
+                    document.getElementById('displayUsername').textContent = user.username;
+                    document.getElementById('email').textContent = user.email;
+                    document.getElementById('joinedDate').textContent = user.joinedDate
+                        ? new Date(user.joinedDate).toLocaleDateString()
+                        : 'Unknown';
+                    document.getElementById('editUsername').value = user.username;
+                    document.getElementById('editEmail').value = user.email;
+                    loadPerformanceData();
                 })
-                .catch(error => console.error('Error fetching user profile:', error));
+                .catch(() => {
+                    showProfileMessage('Unable to reach the server. Please try again later.', 'red');
+                });
         }
 
-        function loadPerformanceData(performance) {
+        function loadPerformanceData() {
             const performanceSection = document.getElementById('performanceData');
             performanceSection.innerHTML = '';
-            if (!performance || performance.length === 0) {
-                performanceSection.innerHTML = '<p>No performance data available.</p>';
+
+            let results = [];
+            try {
+                results = JSON.parse(localStorage.getItem('quizResults') || '[]');
+            } catch (_err) {
+                results = [];
+            }
+
+            if (results.length === 0) {
+                performanceSection.innerHTML = '<p>No performance data available yet. Take a quiz to see your results here.</p>';
                 return;
             }
-            performance.forEach(item => {
+
+            results.slice().reverse().forEach(item => {
                 const div = document.createElement('div');
                 div.classList.add('performance-item');
-                div.innerHTML = `
-                    <h3>${item.quizTitle}</h3>
-                    <p><strong>Score:</strong> ${item.score}</p>
-                    <p><strong>Date:</strong> ${new Date(item.date).toLocaleDateString()}</p>
-                `;
+                div.style.border = '1px solid #ddd';
+                div.style.borderRadius = '5px';
+                div.style.padding = '10px';
+                div.style.marginBottom = '10px';
+
+                const title = document.createElement('h3');
+                title.style.margin = '0 0 5px 0';
+                title.textContent = item.language || 'Quiz';
+                div.appendChild(title);
+
+                const score = document.createElement('p');
+                score.innerHTML = '<strong>Score:</strong> ' + item.score + ' / ' + item.total +
+                    ' (' + item.percentage + '%)';
+                div.appendChild(score);
+
+                const date = document.createElement('p');
+                date.textContent = 'Date: ' + (item.date ? new Date(item.date).toLocaleDateString() : '');
+                div.appendChild(date);
+
                 performanceSection.appendChild(div);
             });
         }
 
         function updateProfile(event) {
             event.preventDefault();
-            const username = document.getElementById('editUsername').value;
-            const email = document.getElementById('editEmail').value;
+            const username = document.getElementById('editUsername').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
             const password = document.getElementById('editPassword').value;
             const messageDiv = document.getElementById('profile-update-message');
+            const saveBtn = document.getElementById('save-btn');
+
             messageDiv.textContent = '';
+            if (!username || !email) {
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'Username and email are required.';
+                return;
+            }
+
+            saveBtn.disabled = true;
             fetch('/api/user/profile', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username, email, password })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: username, email: email, password: password })
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    messageDiv.style.color = 'green';
-                    messageDiv.textContent = 'Profile updated successfully!';
-                    fetchUserProfile();
-                } else {
+                .then(response => response.json().then(data => ({ ok: response.ok, data: data })))
+                .then(({ ok, data }) => {
+                    saveBtn.disabled = false;
+                    messageDiv.style.color = ok ? 'green' : 'red';
+                    messageDiv.textContent = data.message || (ok ? 'Profile updated successfully!' : 'Failed to update profile.');
+                    if (ok) fetchUserProfile();
+                })
+                .catch(() => {
+                    saveBtn.disabled = false;
                     messageDiv.style.color = 'red';
-                    messageDiv.textContent = data.message || 'Failed to update profile.';
-                }
-            })
-            .catch(() => {
-                messageDiv.style.color = 'red';
-                messageDiv.textContent = 'Error updating profile.';
-            });
-            return false;
+                    messageDiv.textContent = 'Error updating profile.';
+                });
         }
+
+        function logout() {
+            fetch('/logout', { method: 'POST' })
+                .finally(() => {
+                    window.location.href = '/login.html';
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchUserProfile();
+            document.getElementById('editProfileForm').addEventListener('submit', updateProfile);
+            document.getElementById('logout-link').addEventListener('click', function (event) {
+                event.preventDefault();
+                logout();
+            });
+        });
     </script>
     <script src="scripts.js"></script>
-<footer class="footer">
-        <div style="text-align:center; margin-top:30px;">
-            <a href="https://buymeacoffee.com/devVishal" target="_blank" style="color:inherit; text-decoration:none; font-size:1.1em; display:inline-flex; align-items:center; gap:6px;">
-                <i class="ti ti-coffee" style="font-size:1.5em;"></i> Buy me a coffee
-            </a>
-        </div>
-    </footer>
 </body>
 
 </html>

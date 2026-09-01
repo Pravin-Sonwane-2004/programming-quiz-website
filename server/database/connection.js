@@ -1,7 +1,8 @@
 const mysql = require("mysql2/promise");
 const dotenv = require("dotenv");
+const path = require("path");
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, "..", "..", "config", ".env") });
 
 const host = process.env.MYSQL_HOST || "localhost";
 const port = parseInt(process.env.MYSQL_PORT || "3306", 10);

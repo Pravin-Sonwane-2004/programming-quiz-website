@@ -1,34 +1,38 @@
 {
-  "name": "programming-website",
+  "name": "programming-quiz-website",
   "version": "1.0.0",
-  "description": "��#\u0000 \u0000h\u0000o\u0000s\u0000t\u0000i\u0000n\u0000g\u0000\r\u0000 \u0000",
-  "main": "index.js",
+  "description": "A modern, responsive web application for taking and hosting programming quizzes across multiple technologies.",
+  "main": "server/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server/app.js"
+    "start": "node server/app.js",
+    "dev": "node server/app.js",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Vishal2004P/hosting.git"
+    "url": "git+https://github.com/pravin-sonwane-2004/programming-quiz-website.git"
   },
-  "keywords": [],
+  "keywords": [
+    "quiz",
+    "programming",
+    "education",
+    "javascript",
+    "mysql"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Vishal2004P/hosting/issues"
+    "url": "https://github.com/pravin-sonwane-2004/programming-quiz-website/issues"
   },
-  "homepage": "https://github.com/Vishal2004P/hosting#readme",
+  "homepage": "https://github.com/pravin-sonwane-2004/programming-quiz-website#readme",
+  "engines": {
+    "node": ">=16"
+  },
   "dependencies": {
     "bcrypt": "^5.1.1",
-    "body-parser": "^1.20.3",
-    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "express-session": "^1.18.1",
-    "jsonwebtoken": "^9.0.0",
     "mime-types": "^2.1.35",
-    "mysql2": "^3.6.0",
-    "punycode": "^2.3.1"
+    "mysql2": "^3.6.0"
   },
   "devDependencies": {
     "jest": "^29.7.0"

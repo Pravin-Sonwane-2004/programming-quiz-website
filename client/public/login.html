@@ -16,16 +16,14 @@
     <div class="container">
         <!-- Logo and Header -->
         <h2 class="logo">
-            Hello Coderz
+            <img src="imagee.png" alt="Logo" class="logo-image"> Hello Coderz
         </h2>
         <div id="success-message" style="color: green; display: none; text-align: center; margin-bottom: 20px;"></div>
 
-        <!-- TEST: Tabler Icon Render Check -->
-     
         <!-- Login Form -->
         <div class="logreg-box">
             <div class="form-box login">
-                <form action="/login" method="POST" id="loginForm">
+                <form novalidate id="loginForm">
                     <h2>Log In</h2>
 
                     <!-- Error Message -->
@@ -34,7 +32,7 @@
                     <!-- Email Input -->
                     <div class="input-box">
                         <span class="icon"><i class="bx bxs-envelope"></i></span>
-                        <input type="email" name="email" id="email" required placeholder="Enter your email">
+                        <input type="email" name="email" id="email" required placeholder="Enter your email" autocomplete="email">
                         <label for="email">Email</label>
                     </div>
 
@@ -43,7 +41,7 @@
                         <span class="icon" onclick="togglePasswordVisibility()">
                             <i class="bx bxs-lock-alt" id="lockIcon" aria-label="Toggle password visibility" role="button" tabindex="0"></i>
                         </span>
-                        <input type="password" name="password" id="password" required placeholder="Enter your password">
+                        <input type="password" name="password" id="password" required placeholder="Enter your password" autocomplete="current-password">
                         <label for="password">Password</label>
                     </div>
 
@@ -54,7 +52,7 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <button type="submit" class="btn">Log In</button>
+                    <button type="submit" class="btn" id="submit-btn">Log In</button>
 
                     <!-- Sign Up Redirect -->
                     <div class="login-register">
@@ -63,8 +61,7 @@
                 </form>
             </div>
         </div>
-
-        <!-- Social Media Links -->
+<!-- Social Media Links -->
         <div class="social-icons">
             <a href="https://portfolio-react-app-rho.vercel.app/" target="_blank"><i class="bx bxs-user"></i></a>
             <a href="https://www.instagram.com/its.Vishal.2004" target="_blank"><i class="bx bxl-instagram"></i></a>
@@ -75,12 +72,10 @@
     </div>
 
     <script>
-        // Check if there's a 'message' query parameter in the URL
+        // Success message from the register flow (?message=...)
         const urlParams = new URLSearchParams(window.location.search);
         const message = urlParams.get('message');
-
         if (message) {
-            // Display the message if it exists in the URL
             const messageContainer = document.getElementById('success-message');
             messageContainer.textContent = message;
             messageContainer.style.display = 'block';
@@ -89,7 +84,6 @@
         function togglePasswordVisibility() {
             const passwordField = document.getElementById('password');
             const lockIcon = document.getElementById('lockIcon');
-
             if (passwordField.type === 'password') {
                 passwordField.type = 'text';
                 lockIcon.classList.replace('bxs-lock-alt', 'bxs-lock-open-alt');
@@ -99,34 +93,59 @@
             }
         }
 
-        document.getElementById('loginForm').addEventListener('submit', function (event) {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function showError(text) {
             const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = text;
+            errorMessage.style.display = 'block';
+        }
 
-            // Reset error display
-            errorMessage.style.display = 'none';
+        document.getElementById('loginForm').addEventListener('submit', function (event) {
+            event.preventDefault();
 
-            // Validate email format
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const remember = document.querySelector('[name="remember"]').checked;
+            const submitBtn = document.getElementById('submit-btn');
+
+            document.getElementById('error-message').style.display = 'none';
+
             if (!validateEmail(email)) {
-                errorMessage.textContent = 'Please enter a valid email address.';
-                errorMessage.style.display = 'block';
-                event.preventDefault();
+                showError('Please enter a valid email address.');
+                return;
+            }
+            if (!password) {
+                showError('Please enter your password.');
                 return;
             }
 
-            // Validate password length
-            if (password.length < 6) {
-                errorMessage.textContent = 'Password must be at least 6 characters long.';
-                errorMessage.style.display = 'block';
-                event.preventDefault();
-            }
-        });
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logging in...';
 
-        function validateEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
+            fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: password, remember: remember })
+            })
+                .then(response => response.json().then(data => ({ ok: response.ok, data: data })))
+                .then(({ ok, data }) => {
+                    if (ok) {
+                        window.location.href = '/index.html';
+                    } else {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Log In';
+                        showError(data.message || 'Login failed. Please try again.');
+                    }
+                })
+                .catch(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Log In';
+                    showError('Unable to reach the server. Please try again later.');
+                });
+        });
     </script>
 </body>
 

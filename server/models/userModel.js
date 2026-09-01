@@ -18,6 +18,23 @@ const findByEmail = async (email) => {
   return rows[0] || null;
 };
 
+const findById = async (id) => {
+  const pool = getDb();
+  const [rows] = await pool.execute(
+    "SELECT id, username, email, created_at FROM users WHERE id = ?",
+    [id]
+  );
+  return rows[0] || null;
+};
+
+const updateProfile = async (userId, username, email) => {
+  const pool = getDb();
+  await pool.execute(
+    "UPDATE users SET username = ?, email = ? WHERE id = ?",
+    [username, email, userId]
+  );
+};
+
 const findByResetToken = async (token) => {
   const pool = getDb();
   const [rows] = await pool.execute(
@@ -46,7 +63,9 @@ const setResetToken = async (userId, token, expiration) => {
 module.exports = {
   createUser,
   findByEmail,
+  findById,
   findByResetToken,
   updatePassword,
+  updateProfile,
   setResetToken,
 };

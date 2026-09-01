@@ -1,28 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Quiz</title>z
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
     <link rel="stylesheet" href="quiz.css">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <!-- Tabler Icons CDN -->
     <link href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
     <style>
-        .dark-mode {
-            background-color: black;
-            color: white;
-        }
-        .dark-mode .navbar, .dark-mode .footer {
-            background-color: #333;
-        }
-        .dark-mode .quiz-button {
-            background-color: #555;
-            color: white;
-        }
-        .dark-mode .quiz-question {
-            background-color: #222;
-            color: white;
-        }
         .navbar .container {
             display: flex;
             justify-content: space-between;
@@ -66,6 +53,14 @@
         html {
             scroll-behavior: smooth;
         }
+        .progress-bar-container {
+            width: 80%;
+            background-color: #ddd;
+            border-radius: 10px;
+            height: 20px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="dark-mode">
@@ -73,7 +68,7 @@
     <nav class="navbar">
         <div class="container">
             <a href="index.html" class="logo">CodingNinja</a>
-            <span id="menu-toggle">&#9776;</span> <!-- Unicode character for hamburger menu -->
+            <span id="menu-toggle">&#9776;</span>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="profile.html">Profile</a></li>
@@ -81,23 +76,17 @@
                 <li><a href="login.html">Login</a></li>
                 <li><a href="register.html">Register</a></li>
             </ul>
-            <button id="dark-mode-toggle">Toggle Dark Mode</button>
+            <button id="dark-mode-toggle" type="button">Toggle Dark Mode</button>
         </div>
     </nav>
 
     <!-- Main Quiz Section -->
     <div id="main-content">
-        <!-- About Section (Initially Hidden) -->
-        <section id="about-section" style="display: none;">
-            <h2>About</h2>
-            <p>This is Vishal Giri's website. Coop with me to explore programming quizzes on various languages like Java, C, C++, SQL, CSS, and Python.</p>
-        </section>
-
         <!-- Quiz Container -->
         <div class="quiz-container scrollable-content">
             <h2 class="quiz-title">Programming Quiz</h2>
-            <h3 id="intro-text">BY Vishal Giri</h3>
-            <p id="intro-text">Which programming language would you like to quiz on?</p>
+            <h3 class="quiz-intro" id="intro-heading">By Vishal Giri</h3>
+            <p class="quiz-intro" id="intro-text">Which programming language would you like to quiz on?</p>
             <div id="language-buttons" class="quiz-buttons">
                 <button class="quiz-button" onclick="startQuiz('Java')">Java</button>
                 <button class="quiz-button" onclick="startQuiz('C')">C</button>
@@ -105,40 +94,23 @@
                 <button class="quiz-button" onclick="startQuiz('Python')">Python</button>
                 <button class="quiz-button" onclick="startQuiz('DSA')">DSA</button>
                 <button class="quiz-button" onclick="startQuiz('SQL')">SQL</button>
-                <button class="quiz-button" onclick="startQuiz('javascript')">javascript</button>
+                <button class="quiz-button" onclick="startQuiz('javascript')">JavaScript</button>
                 <button class="quiz-button" onclick="startQuiz('CSS')">CSS</button>
                 <button class="quiz-button" onclick="startQuiz('RandomTechnical')">Random Technical</button>
             </div>
         </div>
 
         <!-- Quiz Section -->
-        <div id="quizSection" class="quiz-question"></div>
-        <div class="progress-bar" id="progressBar"></div>
+        <div id="quizSection"></div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
 
         <!-- Performance Section -->
-        <div id="performanceSection" class="performance-container" style="display: none;">
-            <h3>Your Performance</h3>
-            <p id="performanceText"></p>
-            <div id="countdown"></div>
-            <button class="quiz-button" onclick="showPerformance()">Performance</button>
-        </div>
+        <div id="performanceSection" class="performance-container" style="display: none;"></div>
     </div>
-
-    <!-- Fireworks Effect Container -->
-    <div id="fireworks" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000;">
-        <div class="firework"></div>
-        <div class="firework"></div>
-        <div class="firework"></div>
-    </div>
-
-    <!-- Countdown Timer -->
-    <div class="countdown-timer">
-        <div class="countdown-circle">
-            <div class="countdown-number">3</div> <!-- Default time -->
-        </div>
-    </div>
-    <!-- Response Container -->
-    <div id="response"></div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -155,32 +127,7 @@
         </div>
     </footer>
 
-    <!-- Scripts -->
+    <!-- Scripts: shared logic (dark mode, menu, quiz) -->
     <script src="scripts.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const darkModeToggle = document.getElementById('dark-mode-toggle');
-            
-            // Check if light mode was previously enabled
-            if (localStorage.getItem('darkMode') === 'false') {
-                document.body.classList.remove('dark-mode');
-                document.querySelector('.navbar').classList.remove('dark-mode');
-                document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('dark-mode'));
-                document.querySelector('.main-content').classList.remove('dark-mode');
-            }
-
-            darkModeToggle.addEventListener('click', () => {
-                document.body.classList.toggle('dark-mode');
-                document.querySelector('.navbar').classList.toggle('dark-mode');
-                document.querySelectorAll('.nav-links a').forEach(link => link.classList.toggle('dark-mode'));
-                document.querySelector('.main-content').classList.toggle('dark-mode');
-                
-                // Save preference to localStorage
-                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'true' : 'false');
-            });
-        });
-    </script>
-
-        
 </body>
 </html>

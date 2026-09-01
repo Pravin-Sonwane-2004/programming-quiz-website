@@ -29,7 +29,7 @@ body {
     text-align: center;
     margin: 20px 0;
 }
-/* filepath: /C:/programming-quiz-hosted/client/public/styles.css */
+/* Dark Mode */
 body.dark-mode {
     background-color: #181a20;
     color: #e0e6ed;
@@ -38,7 +38,16 @@ body.dark-mode {
 
 .navbar.dark-mode {
     background-color: var(--navbar-dark);
-    color: var (--light-text);
+    color: var(--light-text);
+}
+
+body.dark-mode .navbar {
+    background-color: var(--navbar-dark);
+    color: var(--light-text);
+}
+
+body.dark-mode .navbar .logo {
+    color: var(--light-text);
 }
 
 .nav-links a {
@@ -345,12 +354,6 @@ body.dark-mode #dark-mode-toggle:hover {
     background-color: #2d72d9;
     color: #fff;
     border-color: #2d72d9;
-}
-
-body.dark-mode.feature {
-    color: #ffffff; /* Change text color to black in dark mode */
-    background-color: #000; /* Change background color to black in dark mode */
-    color: #fff; /* Change text color to white in dark mode */
 }
 
 body.dark-mode .feature {

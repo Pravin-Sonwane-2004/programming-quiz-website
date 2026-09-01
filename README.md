@@ -84,23 +84,24 @@ A modern, responsive web application for taking and hosting programming quizzes 
 
 ### 🚀 Installation & Running Locally
 
+```bash
 # Clone the repository
-git clone https://github.com/Vishal-Sonwane-2004/programming-quiz-hosted.git
-cd programming-quiz-hosted
+git clone https://github.com/pravin-sonwane-2004/programming-quiz-website.git
+cd programming-quiz-website
 
-# Install live server globally if needed
-npm install -g live-server
+# Install dependencies
 npm install
 
-# Navigate to public directory and start
-cd client/public
-live-server
-Alternatively, open client/public/index.html manually in a browser.
+# Configure your environment (mySQL credentials, session secret) in config/.env
+# Start the server
+npm start
+```
 
+Then open http://localhost:3000 in your browser.
 
-make sure before running you have configured these credentials in .env file   
-This project has been switched to MySQL, so configure a local or hosted MySQL connection below.  
+Make sure you have configured these credentials:
 
+```env
 SESSION_SECRET=ADDYOURSESSIONKEY
 MYSQL_HOST=localhost
 MYSQL_PORT=3306
@@ -108,6 +109,13 @@ MYSQL_USER=root
 MYSQL_PASSWORD=yourpassword
 MYSQL_DATABASE=yourdbname
 PORT=3000
+```
+
+The server will create the `users` table automatically on startup.
+
+> **Note:** `.env` files contain secrets and must NOT be committed to the
+> repository (they are already ignored via `.gitignore`). The sample values
+> are provided for local development only.
 
 
 📚 User Guide

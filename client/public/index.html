@@ -91,39 +91,6 @@
     </footer>
 
     <script src="scripts.js"></script>
-    <script>
-    <!-- Add this before closing </body> tag -->document.addEventListener('DOMContentLoaded', function() {
-            const darkModeToggle = document.getElementById('dark-mode-toggle');
-            const menuToggle = document.getElementById('menu-toggle');
-            const navLinks = document.querySelector('.nav-links');
-            const navItems = document.querySelectorAll('.nav-links a');
-
-            // Apply dark mode based on localStorage
-            if (localStorage.getItem('darkMode') === 'false') {
-                document.body.classList.remove('dark-mode');
-                document.body.classList.add('light-mode');
-            } else {
-                document.body.classList.add('dark-mode');
-                document.body.classList.remove('light-mode');
-            }
-
-            darkModeToggle.addEventListener('click', function() {
-                document.body.classList.toggle('dark-mode');
-                document.body.classList.toggle('light-mode');
-                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-            });
-
-            menuToggle.addEventListener('click', function() {
-                navLinks.classList.toggle('active');
-            });
-
-            navItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    navLinks.classList.remove('active');
-                });
-            });
-        });
-    </script>
 </body>
 
 </html>
