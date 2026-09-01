@@ -163,3 +163,12 @@ Commit your changes (git commit -m 'Add feature')
 Push to your branch (git push origin feature/AmazingFeature)
 
 Open a Pull Request
+
+
+kindly add this .env
+
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=0000
+MYSQL_DATABASE=quiz_db
